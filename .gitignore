@@ -1,0 +1,6 @@
+# IDE related
+/.idea
+/*.iml
+
+# OS related
+.DS_Store

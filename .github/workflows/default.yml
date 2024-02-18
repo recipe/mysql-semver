@@ -1,0 +1,35 @@
+name: mysql-semver test workflow
+
+on: [push]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    name: tests
+
+    env:
+        DB_DATABASE: test_db
+        DB_USER: root
+        DB_PASSWORD: root
+        DB_HOST: localhost
+
+    steps:
+      - name: Set up MySQL server
+        run: |
+          sudo systemctl start mysql
+          mysql -uroot -proot -e "SELECT version();"
+          mysql -uroot -proot -e "CREATE DATABASE test_db DEFAULT CHARACTER SET utf8mb4;"
+          mysql -uroot -proot -e "SHOW DATABASES;"
+
+      - uses: actions/checkout@v3
+
+      - name: Set up stored functions
+        run: |
+          mysql -uroot -proot test_db < ./semver.sql
+          mysql -uroot -proot test_db < ./append_version.sql
+
+      - name: Test VERSION_COMPARE(version1, version2)
+        run: if mysql -uroot -proot test_db < ./tests/test_version_compare.sql | egrep '.'; then exit 1; fi
+
+      - name: Test GET_SORT_ORDER(version)
+        run: if mysql -uroot -proot test_db < ./tests/test_sort_order.sql | egrep -B100 'Test failed'; then exit 1; fi
