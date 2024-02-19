@@ -44,7 +44,7 @@ SELECT VERSION_COMPARE('1.0.2-beta', '1.0.2-alpha');
 ```
 
 The `VERSION_COMPARE` function supports the [Semantic Versioning 2][3] as well as the most of the 
-real life versions that can be provided by users. See the [Sort Order Test][4] for the details.
+real life versions that can be provided by users. See the [Version Compare Test][4] for the details.
 
 To maintain the ordered list of versions in the database we can use the following DB table:
 ```sql
@@ -87,4 +87,4 @@ SELECT * FROM `versions` ORDER BY `sort_order`;
 [1]: https://dev.mysql.com/doc/refman/8.0/en/stored-routines-privileges.html (Stored Routines Privileges)
 [2]: append_version.sql#L89 (The bi_versions_set_sort_order Trigger)
 [3]: https://semver.org/spec/v2.0.0.html (Semantic Versioning 2.0.0)
-[4]: tests/test_sort_order.sql (The Sort Order Test)
+[4]: tests/test_version_compare.sql (The Version Compare Test)
