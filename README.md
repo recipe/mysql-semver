@@ -58,13 +58,13 @@ CREATE TABLE versions (
 ```
 Let's assume the DB table is empty.
 When the new version is being added the `sort_order` is undefined, and can be calculated with 
-the `GET_SORT_ORDER(version)` stored function:
+the [`GET_SORT_ORDER(version)` stored function][5]:
 
 ```sql
 SELECT GET_SORT_URDER('1.0.0');
 9223372036854775807
 ```
-With the help of the [Before Insert TRIGGER][2] on the `versions` table the `sort_order` property
+With the help of the [Before Insert TRIGGER][2] on the `versions` table, the `sort_order` property
 will be initialized automatically for all newly added versions.
 
 ```sql
@@ -88,3 +88,4 @@ SELECT * FROM `versions` ORDER BY `sort_order`;
 [2]: append_version.sql#L89 (The bi_versions_set_sort_order Trigger)
 [3]: https://semver.org/spec/v2.0.0.html (Semantic Versioning 2.0.0)
 [4]: tests/test_version_compare.sql (The Version Compare Test)
+[5]: append_version.sql#L28 (The GET_SORT_ORDER Stored Function)
