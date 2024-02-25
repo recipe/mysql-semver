@@ -17,7 +17,7 @@ DELIMITER //
 
 CREATE TABLE IF NOT EXISTS versions (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    version VARCHAR(64) COLLATE utf8mb4_bin NOT NULL,
+    version VARCHAR(255) COLLATE utf8mb4_bin NOT NULL,
     sort_order BIGINT UNSIGNED NOT NULL,
     UNIQUE KEY unique_version (version),
     KEY idx_sort_order_version (sort_order, version)
