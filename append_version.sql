@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS versions (
     sort_order BIGINT UNSIGNED NOT NULL,
     UNIQUE KEY unique_version (version),
     KEY idx_sort_order_version (sort_order, version)
-) ENGINE = InnoDB charset utf8mb4 //
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 //
 
 DROP FUNCTION IF EXISTS `GET_SORT_ORDER` //
 
