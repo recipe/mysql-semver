@@ -57,11 +57,11 @@ CREATE TABLE versions (
 ) ENGINE = InnoDB charset utf8mb4;
 ```
 Let's assume the DB table is empty.
-When the new version is being added the `sort_order` is undefined, and can be calculated with 
+When the new version is being added the `sort_order` value is undefined and can be calculated with 
 the [`GET_SORT_ORDER(version)` stored function][5]:
 
 ```sql
-SELECT GET_SORT_URDER('1.0.0');
+SELECT GET_SORT_ORDER('1.0.0');
 9223372036854775807
 ```
 With the help of the [Before Insert TRIGGER][2] on the `versions` table, the `sort_order` property
