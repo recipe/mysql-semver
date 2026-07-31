@@ -14,22 +14,23 @@ jobs:
         DB_HOST: localhost
 
     steps:
-      - name: Set up MySQL server
+      - name: Start MySQL and create the test database
         run: |
           sudo systemctl start mysql
           mysql -uroot -proot -e "SELECT version();"
           mysql -uroot -proot -e "CREATE DATABASE test_db DEFAULT CHARACTER SET utf8mb4;"
           mysql -uroot -proot -e "SHOW DATABASES;"
 
-      - uses: actions/checkout@v3
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Set up stored functions
+      - name: Install the stored functions
         run: |
           mysql -uroot -proot test_db < ./semver.sql
           mysql -uroot -proot test_db < ./append_version.sql
 
-      - name: Test VERSION_COMPARE(version1, version2)
+      - name: Run VERSION_COMPARE tests
         run: if mysql -uroot -proot test_db < ./tests/test_version_compare.sql | egrep '.'; then exit 1; fi
 
-      - name: Test GET_SORT_ORDER(version)
+      - name: Run GET_SORT_ORDER tests
         run: if mysql -uroot -proot test_db < ./tests/test_sort_order.sql | egrep -B100 'Test failed'; then exit 1; fi
