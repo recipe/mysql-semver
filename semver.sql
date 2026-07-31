@@ -247,6 +247,10 @@ CREATE FUNCTION `VERSION_COMPARE`(version1 VARCHAR(255), version2 VARCHAR(255)) 
     NO SQL
     SQL SECURITY INVOKER
 BEGIN
+    IF version1 COLLATE utf8mb4_bin = version2 COLLATE utf8mb4_bin THEN
+        RETURN 0;
+    END IF;
+
     RETURN VERSION_COMPARE_SEM(
         version1, version2,
         IFNULL(SEMANTIC_VERSION(version1), NAT_VERSION(version1)),
