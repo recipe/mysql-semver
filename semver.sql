@@ -65,16 +65,18 @@ BEGIN
 END //
 
 
-DROP FUNCTION IF EXISTS `VERSION_COMPARE`//
+DROP FUNCTION IF EXISTS `VERSION_COMPARE_SEM`//
 
-CREATE FUNCTION `VERSION_COMPARE`(version1 VARCHAR(255), version2 VARCHAR(255)) RETURNS TINYINT
+-- Core comparison logic, operating on already-normalized ("semantic") comma-separated
+-- strings for both versions. Split out from VERSION_COMPARE so that callers who need
+-- to compare the same version against many others (e.g. GET_SORT_ORDER's binary search)
+-- can normalize that constant version once instead of on every comparison.
+CREATE FUNCTION `VERSION_COMPARE_SEM`(version1 VARCHAR(255), version2 VARCHAR(255), sem_version1 VARCHAR(255), sem_version2 VARCHAR(255)) RETURNS TINYINT
     DETERMINISTIC
     NO SQL
     SQL SECURITY INVOKER
 BEGIN
     DECLARE re_digits_only VARCHAR(10) DEFAULT '^\\d+$';
-    DECLARE sem_version1 VARCHAR(255) DEFAULT IFNULL(SEMANTIC_VERSION(version1), NAT_VERSION(version1));
-    DECLARE sem_version2 VARCHAR(255) DEFAULT IFNULL(SEMANTIC_VERSION(version2), NAT_VERSION(version2));
     DECLARE l VARCHAR(255);
     DECLARE l_prev TINYINT UNSIGNED DEFAULT 0;
     DECLARE l_next TINYINT UNSIGNED DEFAULT 0;
@@ -236,6 +238,20 @@ BEGIN
 
     /* Versions are identical */
     RETURN 0;
+END //
+
+DROP FUNCTION IF EXISTS `VERSION_COMPARE`//
+
+CREATE FUNCTION `VERSION_COMPARE`(version1 VARCHAR(255), version2 VARCHAR(255)) RETURNS TINYINT
+    DETERMINISTIC
+    NO SQL
+    SQL SECURITY INVOKER
+BEGIN
+    RETURN VERSION_COMPARE_SEM(
+        version1, version2,
+        IFNULL(SEMANTIC_VERSION(version1), NAT_VERSION(version1)),
+        IFNULL(SEMANTIC_VERSION(version2), NAT_VERSION(version2))
+    );
 END //
 
 DELIMITER ;

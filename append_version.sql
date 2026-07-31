@@ -34,6 +34,9 @@ BEGIN
     DECLARE r BIGINT UNSIGNED DEFAULT ~0;
     DECLARE records INT UNSIGNED;
     DECLARE ver VARCHAR(255);
+    -- Normalized once here, instead of on every hop of the binary search below,
+    -- since `version` does not change across iterations.
+    DECLARE sem_version VARCHAR(255) DEFAULT IFNULL(SEMANTIC_VERSION(version), NAT_VERSION(version));
     DECLARE sort_order BIGINT UNSIGNED;
     DECLARE cmp TINYINT;
     DECLARE hop INT UNSIGNED DEFAULT 0;
@@ -58,7 +61,7 @@ BEGIN
             LEAVE loop_1;
         END IF;
 
-        SET cmp = VERSION_COMPARE(version, ver);
+        SET cmp = VERSION_COMPARE_SEM(version, ver, sem_version, IFNULL(SEMANTIC_VERSION(ver), NAT_VERSION(ver)));
 
         IF cmp < 0 THEN
             SET r = sort_order;
