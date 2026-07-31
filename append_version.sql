@@ -34,32 +34,35 @@ BEGIN
     DECLARE r BIGINT UNSIGNED DEFAULT ~0;
     DECLARE records INT UNSIGNED;
     DECLARE ver VARCHAR(255);
-    -- Normalized once here, instead of on every hop of the binary search below,
-    -- since `version` does not change across iterations.
+    /* Normalized once here, instead of on every hop of the binary search below,
+       since `version` does not change across iterations. */
     DECLARE sem_version VARCHAR(255) DEFAULT IFNULL(SEMANTIC_VERSION(version), NAT_VERSION(version));
     DECLARE sort_order BIGINT UNSIGNED;
     DECLARE cmp TINYINT;
     DECLARE hop INT UNSIGNED DEFAULT 0;
+    DECLARE mid_offset INT UNSIGNED;
 
     loop_1: REPEAT
-        # It has to be set to NULL because the next query may not update the value
-        # if there are no records in a range.
-        SET records = NULL;
+        SELECT COUNT(*) INTO records
+        FROM versions v
+        WHERE l < v.sort_order
+        AND v.sort_order < r;
 
-        SELECT t.version, t.sort_order, @sort_order_rows__
-        INTO ver, sort_order, records
-        FROM (
-            SELECT v.version, v.sort_order, @sort_order_rows__ := @sort_order_rows__ + 1 AS num
-            FROM versions v, (SELECT @sort_order_rows__ := 0) t
-            WHERE l < v.sort_order
-            AND v.sort_order < r
-            ORDER BY v.sort_order
-        ) t
-        WHERE num IN ((@sort_order_rows__ + 1) / 2, (@sort_order_rows__ + 2) / 2);
-
-        IF records IS NULL THEN
+        IF records = 0 THEN
             LEAVE loop_1;
         END IF;
+
+        SET mid_offset = records DIV 2;
+
+        /* Fetches the upper-middle row directly by position via the covering index,
+           instead of numbering every row in range */
+        SELECT v.version, v.sort_order
+        INTO ver, sort_order
+        FROM versions v
+        WHERE l < v.sort_order
+        AND v.sort_order < r
+        ORDER BY v.sort_order
+        LIMIT 1 OFFSET mid_offset;
 
         SET cmp = VERSION_COMPARE_SEM(version, ver, sem_version, IFNULL(SEMANTIC_VERSION(ver), NAT_VERSION(ver)));
 
